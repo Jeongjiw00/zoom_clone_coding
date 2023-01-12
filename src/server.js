@@ -32,16 +32,21 @@ function onSocketClose() {
 //   console.log(message.toString("utf8"));
 // }
 
+//fake db
+const sockets = [];
+
 // websocket작동
 // wss는 서버전체, socket은 브라우저 하나대상
 wss.on("connection", (socket) => {
+  //연결되는 socket을 db에 저장
+  sockets.push(socket);
   console.log("Connected to Browser");
   //브라우저가 닫혔을때
   socket.on("close", onSocketClose);
   // 브라우저가 서버에 메세지 보냈을때 다시 그 값을 브라우저에 보내주기
   socket.on("message", (message) => {
     const messageString = message.toString("utf8");
-    socket.send(messageString);
+    sockets.forEach((aSocket) => aSocket.send(messageString));
   });
 });
 

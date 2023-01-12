@@ -46,6 +46,7 @@ wss.on("connection", (socket) => {
   // 브라우저가 서버에 메세지 보냈을때 다시 그 값을 브라우저에 보내주기
   socket.on("message", (message) => {
     const messageString = message.toString("utf8");
+    // 각각의 연결된 소켓 모두에게 메세지 전달(보낸 나도 포함)
     sockets.forEach((aSocket) => aSocket.send(messageString));
   });
 });

@@ -4,15 +4,14 @@ const socket = io();
 const welcome = document.getElementById("welcome");
 const form = welcome.querySelector("form");
 
+function backendDone(msg) {
+  console.log(`the backend says: `, msg);
+}
 function handleRoomSubmit(event) {
   event.preventDefault();
   const input = form.querySelector("input");
-  //socket.send와 같은역할
-  //전에는 object로 못보내서 string으로 변환하여 보냈는데, socketIO는 가능
-  //event,보내고 싶은 데이터, 서버에서 호출하는 function
-  socket.emit("enter_room", { payload: input.value }, () => {
-    console.log("server is done!");
-  });
+  //socket.send와 같은 역할
+  socket.emit("enter_room", input.value, backendDone);
   input.value = "";
 }
 

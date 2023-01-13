@@ -23,12 +23,11 @@ const wsServer = SocketIO(httpServer);
 // 서버 연결
 wsServer.on("connection", (socket) => {
   //socket.on("message")사용안함. 우리가 원하는 이벤트로 사용가능
-  socket.on("enter_room", (msg, done) => {
-    console.log(msg);
-    //done함수는 프론트(app.js)에서 보내주는것! wow!
+  socket.on("enter_room", (roomName, done) => {
+    console.log(roomName);
     setTimeout(() => {
-      done();
-    }, 10000);
+      done("hello from the backend");
+    }, 5000);
   });
 });
 

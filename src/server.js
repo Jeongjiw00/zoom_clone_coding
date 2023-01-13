@@ -1,6 +1,6 @@
 import express from "express";
+import SocketIO from "socket.io";
 import http from "http";
-import WebSocket from "ws";
 
 const app = express();
 
@@ -17,50 +17,19 @@ app.get("/*", (req, res) => res.redirect("/"));
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 
 // 서버 생성(http)
-const server = http.createServer(app);
-// websocket 서버 생성(http서버를 이용한) => http/ws 둘 다 사용가능
-// websocket.server는 객체를 전달인자로 받아주는데
-// {server, port}에서 포트를 생략해주면 http와 같은 port를 사용함!
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-function onSocketClose() {
-  console.log("Disonnected from the Browser ❌");
-}
-
-// function onSocketMessage(message) {
-//   //스트링으로 변환 안해주면 이상한 코드가 나옴
-//   console.log(message.toString("utf8"));
-// }
-
-//fake db
-const sockets = [];
-
-// websocket작동
-// wss는 서버전체, socket은 브라우저 하나대상
-wss.on("connection", (socket) => {
-  //연결되는 socket을 db에 저장
-  sockets.push(socket);
-  socket["nickname"] = "unknown";
-  console.log("Connected to Browser");
-  //브라우저가 닫혔을때
-  socket.on("close", onSocketClose);
-  // 브라우저가 서버에 메세지 보냈을때 다시 그 값을 브라우저에 보내주기
-  socket.on("message", (msg) => {
-    const message = JSON.parse(msg);
-    switch (message.type) {
-      case "new_message":
-        // 각각의 연결된 소켓 모두에게 메세지 전달(보낸 나도 포함)
-        sockets.forEach((aSocket) =>
-          //닉네임과 메세지 같이 불러와주기
-          aSocket.send(`${socket.nickname}: ${message.payload}`)
-        );
-        break;
-      case "nickname":
-        //닉네임 저장해주고
-        socket["nickname"] = message.payload;
-        break;
-    }
+// 서버 연결
+wsServer.on("connection", (socket) => {
+  //socket.on("message")사용안함. 우리가 원하는 이벤트로 사용가능
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    //done함수는 프론트(app.js)에서 보내주는것! wow!
+    setTimeout(() => {
+      done();
+    }, 10000);
   });
 });
 
-server.listen(3000, handleListen);
+httpServer.listen(3000, handleListen);

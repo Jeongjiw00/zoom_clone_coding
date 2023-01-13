@@ -40,14 +40,26 @@ const sockets = [];
 wss.on("connection", (socket) => {
   //연결되는 socket을 db에 저장
   sockets.push(socket);
+  socket["nickname"] = "unknown";
   console.log("Connected to Browser");
   //브라우저가 닫혔을때
   socket.on("close", onSocketClose);
   // 브라우저가 서버에 메세지 보냈을때 다시 그 값을 브라우저에 보내주기
-  socket.on("message", (message) => {
-    const messageString = message.toString("utf8");
-    // 각각의 연결된 소켓 모두에게 메세지 전달(보낸 나도 포함)
-    sockets.forEach((aSocket) => aSocket.send(messageString));
+  socket.on("message", (msg) => {
+    const message = JSON.parse(msg);
+    switch (message.type) {
+      case "new_message":
+        // 각각의 연결된 소켓 모두에게 메세지 전달(보낸 나도 포함)
+        sockets.forEach((aSocket) =>
+          //닉네임과 메세지 같이 불러와주기
+          aSocket.send(`${socket.nickname}: ${message.payload}`)
+        );
+        break;
+      case "nickname":
+        //닉네임 저장해주고
+        socket["nickname"] = message.payload;
+        break;
+    }
   });
 });
 

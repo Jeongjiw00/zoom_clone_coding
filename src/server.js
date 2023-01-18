@@ -22,12 +22,25 @@ const wsServer = SocketIO(httpServer);
 
 // 서버 연결
 wsServer.on("connection", (socket) => {
+  // onAny : middleware같은거, 어떤 event에서든지 console.log가능
+  socket.onAny((event) => {
+    console.log(`Socket Event:${event}`);
+  });
   //socket.on("message")사용안함. 우리가 원하는 이벤트로 사용가능
   socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => {
-      done("hello from the backend");
-    }, 5000);
+    socket.join(roomName);
+    //showRoom()호출
+    done();
+    // 입장메시지 보내기(welcome이벤트를 나를 제외한 방의 모든 사람들에게 emit)
+    socket.to(roomName).emit("welcome");
+  });
+  // 연결 끊을때 - 모든 방에 bye 이벤트 보내기
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", msg);
+    done();
   });
 });
 
